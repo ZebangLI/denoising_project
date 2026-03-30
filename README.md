@@ -126,3 +126,40 @@ denoising_project/
 ├── test_sidd_pair.py
 ├── test_sidd_inference.py
 └── README.md
+Main Files
+train.py — training on synthetic Gaussian noise
+train_sidd.py — training on SIDD real-noise dataset
+evaluate.py — evaluation for synthetic-noise model
+evaluate_sidd.py — evaluation for SIDD model
+save_val_results.py — save denoised validation results
+save_sidd_results.py — save denoised SIDD results
+models/simple_cnn.py — CNN denoising model
+utils/metrics.py — PSNR / SSIM metrics
+utils/noise.py — noise generation utilities
+How to Run
+1. Check CUDA
+python check_cuda.py
+2. Train synthetic-noise model
+python train.py
+3. Train real-noise model
+python train_sidd.py
+4. Evaluate synthetic-noise model
+python evaluate.py
+5. Evaluate real-noise model
+python evaluate_sidd.py
+Notes
+Large datasets are not included in this repository.
+Model checkpoint files (.pth) are also excluded.
+You need to prepare the BSD500 and SIDD-Small datasets locally before training.
+Future Improvements
+
+Possible next steps for this project include:
+
+using a stronger denoising backbone such as U-Net
+comparing generalization across datasets
+adding SSIM summary results more systematically
+testing synthetic-trained and real-trained models on the same benchmark images
+improving visual result analysis
+Author
+
+Zebang Li
