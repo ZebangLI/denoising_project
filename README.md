@@ -1,107 +1,110 @@
-# Image Denoising Project
+# Learning-Based Image Denoising: Synthetic Noise vs Real Noise
 
-This project studies **learning-based image denoising** by comparing two training settings:
+A deep learning project that compares **synthetic-noise training** and **real-noise training** for image denoising using the same CNN backbone.
 
-1. **Synthetic noise training**  
-   Train a denoising model on clean images with artificially added Gaussian noise.
-
-2. **Real-noise training**  
-   Train a denoising model on real noisy/clean image pairs from the **SIDD-Small sRGB** dataset.
-
-The goal is to compare how different training data affect denoising performance on noisy images.
-
----
-
-## Project Idea
-
-Image denoising is a classical inverse problem.
+This project studies a core imaging inverse problem:
 
 \[
 Y = X + N
 \]
 
-- \(X\): clean image  
-- \(Y\): noisy image  
-- \(N\): noise  
+where a noisy image \(Y\) is formed from a clean image \(X\) and noise \(N\). The goal is to recover \(X\) from \(Y\).
 
-Given a noisy image \(Y\), the goal is to recover the clean image \(X\).
+---
 
-In this project, I compare:
+## Overview
 
-- a model trained with **synthetic Gaussian noise**
-- a model trained with **real noisy images**
+Many denoising models are trained on **synthetically corrupted clean images**, typically with Gaussian noise. However, real-world image noise is often more complex than a simple parametric model.
 
-using the same basic CNN architecture.
+In this project, I built and evaluated two denoising pipelines:
+
+- **Synthetic-noise baseline**: trained on BSD500 clean images with added Gaussian noise
+- **Real-noise baseline**: trained on paired noisy/clean images from the SIDD-Small sRGB dataset
+
+By keeping the model architecture fixed and changing only the training data source, this project analyzes how **data realism affects denoising performance and generalization**.
+
+---
+
+## Technical Highlights
+
+- Built an end-to-end **image denoising pipeline** in **PyTorch**
+- Implemented two training settings:
+  - synthetic Gaussian-noise training
+  - real-noise paired-image training
+- Used a lightweight **CNN denoiser** as a controlled baseline
+- Processed images into **128×128 training patches**
+- Evaluated performance using:
+  - **PSNR**
+  - **SSIM**
+  - visual output comparison
+- Developed separate training / evaluation scripts for synthetic and real-noise experiments
 
 ---
 
 ## Datasets
 
-### 1. BSD500
-Used as the clean image dataset for synthetic-noise experiments.
+### BSD500
+Used as the clean-image source for synthetic-noise experiments.
 
-- Clean images are loaded from BSD500
-- Gaussian noise is added to generate noisy inputs
-- Random patches of size **128 × 128** are used for training
+- clean natural images
+- Gaussian noise added during preprocessing
+- noisy / clean patch pairs generated for training
 
-### 2. SIDD-Small sRGB
-Used for real-noise experiments.
+### SIDD-Small sRGB
+Used for real-noise denoising experiments.
 
-- Real noisy image / ground-truth clean image pairs
-- Patch size: **128 × 128**
-- Used to train and evaluate the real-noise denoising model
+- real smartphone noisy images
+- corresponding clean ground-truth targets
+- paired supervision for training and evaluation
 
 ---
 
 ## Model
 
-The model used in this project is a **simple CNN denoiser**.
+The project uses a **simple CNN denoiser** as a baseline model.
 
-It is intentionally lightweight so that the comparison focuses on the effect of the training data rather than on a very complex network design.
-
----
-
-## Training Settings
-
-### Synthetic baseline
-- Dataset: BSD500
-- Noise type: Gaussian noise
-- Input: noisy patch
-- Target: clean patch
-
-### Real-noise baseline
-- Dataset: SIDD-Small sRGB
-- Input: real noisy patch
-- Target: clean ground-truth patch
+This design keeps the architecture intentionally simple so that the comparison focuses on the effect of the **training data distribution** rather than on network complexity.
 
 ---
 
-## Evaluation
+## Experiment Design
 
-The models are evaluated using:
+### 1. Synthetic-Noise Training
+- input: clean BSD500 image + synthetic Gaussian noise
+- target: original clean image
+- purpose: establish a standard controlled denoising baseline
 
-- **PSNR** (Peak Signal-to-Noise Ratio)
-- **SSIM** (Structural Similarity Index)
-- visual comparison of denoised outputs
+### 2. Real-Noise Training
+- input: real noisy image from SIDD
+- target: corresponding clean ground-truth image
+- purpose: study denoising under real sensor noise conditions
 
----
+### 3. Comparison Goal
+Compare how the two training strategies differ in:
 
-## Current Results
-
-### Real-noise experiment
-Example evaluation result from `evaluate_sidd.py`:
-
-- Average Noisy PSNR: **27.93 dB**
-- Average Denoised PSNR: **30.14 dB**
-
-This shows that the trained denoising model improves image quality on the SIDD-Small dataset.
-
-### Synthetic vs Real-Noise Comparison
-This project compares whether a model trained on synthetic Gaussian noise can generalize well to real noisy images, and how it differs from a model trained directly on real-noise data.
+- denoising quality
+- real-world robustness
+- quantitative performance
+- visual output characteristics
 
 ---
 
-## Project Structure
+## Results
+
+### Real-noise evaluation
+From `evaluate_sidd.py`:
+
+- **Average Noisy PSNR:** 27.93 dB
+- **Average Denoised PSNR:** 30.14 dB
+
+This shows a measurable improvement in reconstruction quality after denoising on the SIDD-Small dataset.
+
+### Key takeaway
+A model trained on real noisy-clean image pairs is better aligned with real-world denoising conditions than a model trained only on synthetic Gaussian noise. Synthetic-noise training remains useful as a clean and interpretable baseline.
+
+---
+
+## Repository Structure
 
 ```text
 denoising_project/
@@ -126,40 +129,3 @@ denoising_project/
 ├── test_sidd_pair.py
 ├── test_sidd_inference.py
 └── README.md
-Main Files
-train.py — training on synthetic Gaussian noise
-train_sidd.py — training on SIDD real-noise dataset
-evaluate.py — evaluation for synthetic-noise model
-evaluate_sidd.py — evaluation for SIDD model
-save_val_results.py — save denoised validation results
-save_sidd_results.py — save denoised SIDD results
-models/simple_cnn.py — CNN denoising model
-utils/metrics.py — PSNR / SSIM metrics
-utils/noise.py — noise generation utilities
-How to Run
-1. Check CUDA
-python check_cuda.py
-2. Train synthetic-noise model
-python train.py
-3. Train real-noise model
-python train_sidd.py
-4. Evaluate synthetic-noise model
-python evaluate.py
-5. Evaluate real-noise model
-python evaluate_sidd.py
-Notes
-Large datasets are not included in this repository.
-Model checkpoint files (.pth) are also excluded.
-You need to prepare the BSD500 and SIDD-Small datasets locally before training.
-Future Improvements
-
-Possible next steps for this project include:
-
-using a stronger denoising backbone such as U-Net
-comparing generalization across datasets
-adding SSIM summary results more systematically
-testing synthetic-trained and real-trained models on the same benchmark images
-improving visual result analysis
-Author
-
-Zebang Li
